@@ -5,3 +5,4 @@ ray
 seaborn
 tensorboard
 torch
+git+https://github.com/cobets/dots-env
