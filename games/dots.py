@@ -27,7 +27,7 @@ class MuZeroConfig:
 
 
         ### Self-Play
-        self.num_workers = 1  # Number of simultaneous threads/workers self-playing to feed the replay buffer
+        self.num_workers = 2  # Number of simultaneous threads/workers self-playing to feed the replay buffer
         self.selfplay_on_gpu = False
         self.max_moves = 64  # Maximum number of moves if game is not finished before
         self.num_simulations = 25  # Number of future moves self-simulated
@@ -68,8 +68,8 @@ class MuZeroConfig:
         # Training
         self.results_path = pathlib.Path(__file__).resolve().parents[1] / "results" / pathlib.Path(__file__).stem / datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")  # Path to store the model weights and TensorBoard logs
         self.save_model = True  # Save the checkpoint in results_path as model.checkpoint
-        self.training_steps = 1000000  # Total number of training steps (ie weights update according to a batch)
-        self.batch_size = 64  # Number of parts of games to train on at each training step
+        self.training_steps = 9000000  # Total number of training steps (ie weights update according to a batch)
+        self.batch_size = 128  # Number of parts of games to train on at each training step
         self.checkpoint_interval = 10  # Number of training steps before using the model for self-playing
         self.value_loss_weight = 0.25  # Scale the value loss to avoid overfitting of the value function, paper recommends 0.25 (See paper appendix Reanalyze)
         self.train_on_gpu = torch.cuda.is_available()  # Train on GPU if available
@@ -129,12 +129,19 @@ class Game(AbstractGame):
         Returns:
             The new observation, the reward and a boolean if the game has ended.
         """
+
+        if self.env.player == BLACK:
+            reward_sign = 1
+        else:
+            reward_sign = -1
+
         self.env.play(action)
+
         observation = self.env.feature()
         done = self.env.terminal()
         reward = 0
         if done:
-            reward = self.env.terminal_reward()
+            reward = max(self.env.terminal_reward() * reward_sign, 0)
 
         return observation, reward, done
 
