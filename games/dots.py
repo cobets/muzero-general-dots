@@ -16,7 +16,7 @@ class MuZeroConfig:
         self.max_num_gpus = None  # Fix the maximum number of GPUs to use. It's usually faster to use a single GPU (set it to 1) if it has enough memory. None will use every GPUs available
 
         # Game
-        self.observation_shape = (2, 8, 8)  # Dimensions of the game observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
+        self.observation_shape = (3, 8, 8)  # Dimensions of the game observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
         self.action_space = list(range(64))  # Fixed list of all possible actions. You should only edit the length
         self.players = list(range(2))  # List of players. You should only edit the length
         self.stacked_observations = 0  # Number of previous observations and previous actions to add to the current observation
@@ -129,21 +129,7 @@ class Game(AbstractGame):
         Returns:
             The new observation, the reward and a boolean if the game has ended.
         """
-
-        if self.env.player == BLACK:
-            reward_sign = 1
-        else:
-            reward_sign = -1
-
-        self.env.play(action)
-
-        observation = self.env.feature()
-        done = self.env.terminal()
-        reward = 0
-        if done:
-            reward = max(self.env.terminal_reward() * reward_sign, 0)
-
-        return observation, reward, done
+        return self.env.step(action)
 
     def to_play(self):
         """
@@ -175,7 +161,7 @@ class Game(AbstractGame):
             Initial observation of the game.
         """
         self.env = DotsEnv(8, 8)
-        return self.env.feature()
+        return self.env.observation()
 
     def render(self):
         """
